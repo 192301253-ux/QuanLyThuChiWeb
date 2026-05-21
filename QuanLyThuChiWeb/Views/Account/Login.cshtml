@@ -31,6 +31,19 @@
                     <p class="text-muted small mt-1">Vui lòng đăng nhập để quản lý thu chi</p>
                 </div>
 
+                @if (ViewBag.ErrorMessage != null)
+                {
+                    <div class="alert alert-danger alert-dismissible fade show shadow-sm border-start border-danger border-4 rounded-3 small mb-3" role="alert">
+                        <div class="d-flex align-items-center">
+                            <i class="bi bi-exclamation-triangle-fill fs-5 me-2 text-danger"></i>
+                            <div>
+                                @ViewBag.ErrorMessage
+                            </div>
+                        </div>
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    </div>
+                }
+
                 <form method="post" asp-controller="Account" asp-action="LoginProcess">
 
                     <div class="mb-3">

@@ -82,37 +82,42 @@ namespace QuanLyThuChiWeb.Controllers
         // ==========================================
         public IActionResult BaoCao(int? thang, int? nam)
         {
-            // 1. Kiểm tra trạng thái đăng nhập từ Session
             int? userId = HttpContext.Session.GetInt32("UserId");
             if (userId == null)
             {
                 return RedirectToAction("Login", "Account");
             }
 
-            // 2. Nếu người dùng chưa bấm chọn bộ lọc, mặc định hệ thống sẽ lấy Tháng và Năm hiện tại máy tính
             int thangLoc = thang ?? DateTime.Now.Month;
             int namLoc = nam ?? DateTime.Now.Year;
 
-            // 3. Tính toán tổng tiền Thu và Chi trong SQL Server được LỌC CHÍNH XÁC THEO THÁNG/NĂM của User này
+            // 1. Tính tổng Thu, Tổng Chi, Số dư của tháng được chọn
             var totalThu = _context.Transactions
-                .Where(t => t.UserId == userId.Value
-                         && t.LoaiGiaoDich == "Thu"
-                         && t.NgayGiaoDich.Month == thangLoc
-                         && t.NgayGiaoDich.Year == namLoc)
-                .Sum(t => (double)t.SoTien);
+                .Where(t => t.UserId == userId.Value && t.LoaiGiaoDich == "Thu" && t.NgayGiaoDich.Month == thangLoc && t.NgayGiaoDich.Year == namLoc)
+                .Sum(t => (double?)t.SoTien) ?? 0;
 
             var totalChi = _context.Transactions
-                .Where(t => t.UserId == userId.Value
-                         && t.LoaiGiaoDich == "Chi"
-                         && t.NgayGiaoDich.Month == thangLoc
-                         && t.NgayGiaoDich.Year == namLoc)
-                .Sum(t => (double)t.SoTien);
+                .Where(t => t.UserId == userId.Value && t.LoaiGiaoDich == "Chi" && t.NgayGiaoDich.Month == thangLoc && t.NgayGiaoDich.Year == namLoc)
+                .Sum(t => (double?)t.SoTien) ?? 0;
 
-            // 4. Đẩy số liệu đã lọc và các điều kiện thời gian ngược lại sang View
+            var chiTieuTheoDanhMuc = _context.Transactions
+                .Where(t => t.UserId == userId.Value && t.LoaiGiaoDich == "Chi" && t.NgayGiaoDich.Month == thangLoc && t.NgayGiaoDich.Year == namLoc)
+                .GroupBy(t => t.DanhMuc)
+                .Select(g => new {
+                    TenDanhMuc = g.Key,
+                    TongTien = g.Sum(t => (double)t.SoTien)
+                }).ToList();
+
+            // 3. Gửi toàn bộ dữ liệu qua ViewBag sang View
             ViewBag.TotalThu = totalThu;
             ViewBag.TotalChi = totalChi;
+            ViewBag.SoDu = totalThu - totalChi;
             ViewBag.ThangHienTai = thangLoc;
             ViewBag.NamHienTai = namLoc;
+
+            // Chuyển mảng danh mục thành danh sách dạng chuỗi để JavaScript dễ đọc
+            ViewBag.LabelsDanhMuc = chiTieuTheoDanhMuc.Select(x => x.TenDanhMuc).ToArray();
+            ViewBag.DataDanhMuc = chiTieuTheoDanhMuc.Select(x => x.TongTien).ToArray();
 
             return View();
         }

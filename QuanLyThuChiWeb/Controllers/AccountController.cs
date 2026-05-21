@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using QuanLyThuChiWeb.Models;
+using System;
 using System.Linq;
 
 namespace QuanLyThuChiWeb.Controllers
@@ -31,6 +32,13 @@ namespace QuanLyThuChiWeb.Controllers
         [HttpPost]
         public IActionResult RegisterProcess(string hoTen, string email, string matKhau, string nhapLaiMatKhau)
         {
+            // Kiểm tra các trường dữ liệu có bị bỏ trống không
+            if (string.IsNullOrEmpty(hoTen) || string.IsNullOrEmpty(email) || string.IsNullOrEmpty(matKhau))
+            {
+                ModelState.AddModelError("", "Vui lòng nhập đầy đủ thông tin đăng ký!");
+                return View("Register");
+            }
+
             // Kiểm tra mật khẩu nhập lại có trùng khớp không
             if (matKhau != nhapLaiMatKhau)
             {
@@ -55,26 +63,41 @@ namespace QuanLyThuChiWeb.Controllers
             return RedirectToAction("Login");
         }
 
-        // 2. XỬ LÝ ĐĂNG NHẬP, LƯU SESSION VÀ QUYÊN ĐIỀU HƯỚNG VỀ MÀN HÌNH CHÍNH
+        // 2. XỬ LÝ ĐĂNG NHẬP, LƯU SESSION VÀ PHÂN QUYỀN ĐIỀU HƯỚNG VỀ MÀN HÌNH CHÍNH
         [HttpPost]
         public IActionResult LoginProcess(string email, string matKhau)
         {
-            // Truy vấn kiểm tra tài khoản thực tế trong Database SQL Server
-            var user = _context.Users.FirstOrDefault(u => u.Email == email && u.MatKhau == matKhau);
-
-            if (user != null)
+            // Bước 1: Kiểm tra người dùng có bỏ trống ô nhập liệu nào không
+            if (string.IsNullOrEmpty(email) || string.IsNullOrEmpty(matKhau))
             {
-                // LƯU THÔNG TIN ĐĂNG NHẬP VÀO HỆ THỐNG SESSION
-                HttpContext.Session.SetInt32("UserId", user.Id);
-                HttpContext.Session.SetString("UserFullName", user.HoTen);
-
-                // ĐIỀU HƯỚNG: Quay trở thẳng về màn hình chính (Trang chủ Index của HomeController)
-                return RedirectToAction("Index", "Home");
+                ViewBag.ErrorMessage = "Vui lòng nhập đầy đủ cả Email và Mật khẩu!";
+                return View("Login");
             }
 
-            // Nếu sai thông tin, giữ lại trang Login và báo lỗi trực quan lên form
-            ModelState.AddModelError("", "Tài khoản hoặc mật khẩu không chính xác!");
-            return View("Login");
+            // Bước 2: Tìm kiếm tài khoản dựa trên Email người dùng nhập vào
+            var user = _context.Users.FirstOrDefault(u => u.Email == email);
+
+            if (user == null)
+            {
+                // Trường hợp 1: Không tìm thấy Email này trong hệ thống cơ sở dữ liệu
+                ViewBag.ErrorMessage = "Tài khoản Email này không tồn tại trên hệ thống!";
+                return View("Login");
+            }
+
+            // Bước 3: Tìm thấy Email rồi, tiếp tục so sánh xem Mật khẩu đúng không
+            if (user.MatKhau != matKhau)
+            {
+                // Trường hợp 2: Đúng Email nhưng gõ sai Mật khẩu
+                ViewBag.ErrorMessage = "Mật khẩu không chính xác. Vui lòng thử lại!";
+                return View("Login");
+            }
+
+            // Bước 4: Đăng nhập thành công -> Tiến hành cấp quyền và lưu trữ trạng thái Session
+            HttpContext.Session.SetInt32("UserId", user.Id);
+            HttpContext.Session.SetString("UserFullName", user.HoTen);
+
+            // ĐIỀU HƯỚNG: Chuyển hướng thẳng về màn hình chính (Trang chủ của dự án)
+            return RedirectToAction("Index", "Home");
         }
 
         // 3. XỬ LÝ ĐĂNG XUẤT (RESET TRẠNG THÁI APP)
