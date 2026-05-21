@@ -1,0 +1,38 @@
+﻿@using Microsoft.AspNetCore.Http
+@inject IHttpContextAccessor HttpContextAccessor
+
+@{
+    var userFullName = HttpContextAccessor.HttpContext?.Session.GetString("UserFullName");
+}
+
+<ul class="navbar-nav align-items-center gap-3">
+    @if (!string.IsNullOrEmpty(userFullName))
+    {
+        <li class="nav-item">
+            <span class="nav-link border border-dark rounded-3 px-3 py-2 fw-bold text-dark bg-light shadow-sm d-inline-block text-nowrap">
+                <i class="bi bi-person-circle me-1"></i> @userFullName
+            </span>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-outline-danger border-2 rounded-circle shadow-sm d-flex align-items-center justify-content-center"
+               asp-controller="Account" asp-action="Logout"
+               title="Đăng xuất"
+               style="width: 40px; height: 40px; min-width: 40px; padding: 0;">
+                <i class="bi bi-box-arrow-right fs-5"></i>
+            </a>
+        </li>
+    }
+    else
+    {
+        <li class="nav-item">
+            <a class="btn btn-outline-dark rounded-pill px-3 btn-sm fw-bold" asp-controller="Account" asp-action="Register">
+                <i class="bi bi-person-plus-fill"></i> Đăng ký
+            </a>
+        </li>
+        <li class="nav-item">
+            <a class="btn btn-dark rounded-pill px-3 btn-sm fw-bold" asp-controller="Account" asp-action="Login">
+                <i class="bi bi-box-arrow-in-right"></i> Đăng nhập
+            </a>
+        </li>
+    }
+</ul>

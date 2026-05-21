@@ -1,0 +1,73 @@
+﻿@{
+    ViewData["Title"] = "Đăng ký tài khoản";
+}
+
+<div class="container" style="margin-top: 4rem; margin-bottom: 4rem;">
+    <div class="row justify-content-center">
+        <div class="col-md-5 col-lg-4">
+            <div class="card shadow-lg border-0 rounded-4 p-4 p-sm-5 bg-white">
+
+                <div class="text-center mb-4">
+                    <div class="display-5 text-dark mb-2">
+                        <i class="bi bi-person-plus-fill"></i>
+                    </div>
+                    <h3 class="fw-bold text-dark m-0">Tạo Tài Khoản</h3>
+                    <p class="text-muted small mt-1">Bắt đầu hành trình quản lý tài chính thông minh</p>
+                </div>
+
+                <form method="post" asp-controller="Account" asp-action="RegisterProcess">
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary">Họ và Tên</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-person-badge"></i></span>
+                            <input type="text" name="hoTen" class="form-control" placeholder="Nguyễn Văn A" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary">Địa chỉ Email</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-envelope"></i></span>
+                            <input type="email" name="email" class="form-control" placeholder="name@example.com" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary">Mật khẩu</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock"></i></span>
+                            <input type="password" name="matKhau" class="form-control" placeholder="Tối thiểu 6 ký tự" required />
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small text-secondary">Xác nhận mật khẩu</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light border-end-0 text-muted"><i class="bi bi-lock-check"></i></span>
+                            <input type="password" name="nhapLaiMatKhau" class="form-control" placeholder="Nhập lại mật khẩu" required />
+                        </div>
+                    </div>
+
+                    <div class="form-check mb-4 small text-start">
+                        <input class="form-check-input" type="checkbox" id="chkTerms" required>
+                        <label class="form-check-label text-muted" for="chkTerms">
+                            Tôi đồng ý với các điều khoản sử dụng ứng dụng
+                        </label>
+                    </div>
+
+                    <button type="submit" class="btn btn-dark w-100 rounded-pill py-2.5 fw-bold mb-3 shadow-sm">
+                        Đăng ký tài khoản
+                    </button>
+
+                </form>
+
+                <div class="text-center mt-3 border-top pt-3">
+                    <span class="text-muted small">Đã có tài khoản? </span>
+                    <a asp-controller="Account" asp-action="Login" class="text-dark fw-bold small text-decoration-none">Đăng nhập</a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+</div>

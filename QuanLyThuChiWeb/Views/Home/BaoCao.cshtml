@@ -1,0 +1,155 @@
+﻿@{
+    ViewData["Title"] = "Báo cáo tài chính theo tháng";
+}
+
+<div class="container" style="margin-top: 3rem; margin-bottom: 3rem;">
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-8 text-center text-white">
+            <h2 class="fw-bold"><i class="bi bi-pie-chart-fill text-warning me-2"></i>BÁO CÁO TÀI CHÍNH</h2>
+            <p class="text-secondary small">Phân tích luồng tiền thu và chi thực tế theo từng tháng</p>
+        </div>
+    </div>
+
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-6">
+            <div class="card bg-dark border-secondary p-3 shadow-sm rounded-3">
+                <form method="get" asp-controller="Home" asp-action="BaoCao" class="row g-2 align-items-center">
+                    <div class="col-sm-5">
+                        <label class="form-label small text-secondary fw-semibold m-0 mb-1">Chọn Tháng</label>
+                        <select name="thang" class="form-select bg-dark border-secondary text-white small">
+                            @for (int i = 1; i <= 12; i++)
+                            {
+                                if (i == ViewBag.ThangHienTai)
+                                {
+                                    <option value="@i" selected>Tháng @i</option>
+                                }
+                                else
+                                {
+                                    <option value="@i">Tháng @i</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-4">
+                        <label class="form-label small text-secondary fw-semibold m-0 mb-1">Chọn Năm</label>
+                        <select name="nam" class="form-select bg-dark border-secondary text-white small">
+                            @for (int year = DateTime.Now.Year - 2; year <= DateTime.Now.Year + 1; year++)
+                            {
+                                if (year == ViewBag.NamHienTai)
+                                {
+                                    <option value="@year" selected>Năm @year</option>
+                                }
+                                else
+                                {
+                                    <option value="@year">Năm @year</option>
+                                }
+                            }
+                        </select>
+                    </div>
+                    <div class="col-sm-3 mt-sm-4 pt-sm-1">
+                        <button type="submit" class="btn btn-light fw-bold w-100 btn-sm py-2">
+                            <i class="bi bi-filter"></i> Lọc
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="row justify-content-center align-items-center gap-4">
+        <div class="col-md-4">
+            <h5 class="text-white mb-3 fw-bold small text-uppercase tracking-wider text-secondary">
+                Số liệu tháng @ViewBag.ThangHienTai/@ViewBag.NamHienTai
+            </h5>
+
+            <div class="card bg-dark border-secondary text-white p-3 mb-3 shadow-sm rounded-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-secondary fw-semibold">Tổng thu nhập</small>
+                        <h4 class="text-success fw-bold m-0 mt-1">@string.Format("{0:N0}", ViewBag.TotalThu) đ</h4>
+                    </div>
+                    <i class="bi bi-graph-up-arrow fs-3 text-success"></i>
+                </div>
+            </div>
+
+            <div class="card bg-dark border-secondary text-white p-3 mb-3 shadow-sm rounded-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-secondary fw-semibold">Tổng chi tiêu</small>
+                        <h4 class="text-danger fw-bold m-0 mt-1">@string.Format("{0:N0}", ViewBag.TotalChi) đ</h4>
+                    </div>
+                    <i class="bi bi-graph-down-arrow fs-3 text-danger"></i>
+                </div>
+            </div>
+
+            <div class="card bg-dark border-secondary text-white p-3 shadow-sm rounded-3">
+                <div class="d-flex justify-content-between align-items-center">
+                    <div>
+                        <small class="text-secondary fw-semibold">Số dư trong tháng</small>
+                        <h4 class="text-info fw-bold m-0 mt-1">@string.Format("{0:N0}", ViewBag.TotalThu - ViewBag.TotalChi) đ</h4>
+                    </div>
+                    <i class="bi bi-wallet2 fs-3 text-info"></i>
+                </div>
+            </div>
+        </div>
+
+        <div class="col-md-4 d-flex justify-content-center">
+            <div class="bg-dark border border-secondary p-4 rounded-4 shadow" style="width: 100%; max-width: 360px;">
+                <canvas id="financeMonthlyChart"></canvas>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<script>
+    var dataThu = @(ViewBag.TotalThu ?? 0);
+    var dataChi = @(ViewBag.TotalChi ?? 0);
+    var thangLoc = @ViewBag.ThangHienTai;
+    var namLoc = @ViewBag.NamHienTai;
+
+    var isDataEmpty = (dataThu === 0 && dataChi === 0);
+
+    var chartData = isDataEmpty ? [1, 0] : [dataThu, dataChi];
+    var chartLabels = isDataEmpty ? ['Không có dữ liệu thu', 'Không có dữ liệu chi'] : ['Tổng Thu (đ)', 'Tổng Chi (đ)'];
+    var chartColors = isDataEmpty ? ['#495057', '#6c757d'] : ['#198754', '#dc3545'];
+
+    var ctx = document.getElementById('financeMonthlyChart').getContext('2d');
+    var financeChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+            labels: chartLabels,
+            datasets: [{
+                data: chartData,
+                backgroundColor: chartColors,
+                borderWidth: 2,
+                borderColor: '#212529',
+                hoverOffset: 4
+            }]
+        },
+        options: {
+            responsive: true,
+            plugins: {
+                legend: {
+                    position: 'bottom',
+                    labels: {
+                        color: '#f8f9fa',
+                        font: { size: 13, weight: 'bold' },
+                        padding: 15
+                    }
+                },
+                tooltip: {
+                    callbacks: {
+                        label: function(context) {
+                            if (isDataEmpty) return ' Tháng ' + thangLoc + '/' + namLoc + ' chưa phát sinh giao dịch';
+                            var label = context.label || '';
+                            var value = context.raw || 0;
+                            return ' ' + label + ': ' + value.toLocaleString('vi-VN') + ' đ';
+                        }
+                    }
+                }
+            }
+        }
+    });
+</script>
